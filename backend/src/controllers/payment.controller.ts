@@ -1,7 +1,6 @@
 import contestTypes from "../utils/contestTypes";
 import contestModel from "../models/contest.model";
 import userModel from "../models/user.model"
-const stripe = require('stripe')('sk_test_51MQUsaBdYqC9TK50cqhgqIu3NAZfDvrX20rVvsNlTjO0IUCgbiDj7WCe7dxHJw7i01RlkFnKQu8fSDLq5QZBtbKU00wLa9dxob');
 
 import { CloudSchedulerClient } from '@google-cloud/scheduler';
 const client = new CloudSchedulerClient();

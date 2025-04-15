@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const contestTypes_1 = __importDefault(require("../utils/contestTypes"));
 const contest_model_1 = __importDefault(require("../models/contest.model"));
-const stripe = require('stripe')('sk_test_51MQUsaBdYqC9TK50cqhgqIu3NAZfDvrX20rVvsNlTjO0IUCgbiDj7WCe7dxHJw7i01RlkFnKQu8fSDLq5QZBtbKU00wLa9dxob');
+
 const scheduler_1 = require("@google-cloud/scheduler");
 const client = new scheduler_1.CloudSchedulerClient();
 const paymentController = {
