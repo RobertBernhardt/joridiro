@@ -1,0 +1,71 @@
+:root {
+    /* Primary colors */
+    --primary: #3D09EA;
+    --primary-light: #5524FF;
+    --primary-dark: #2F08CE;
+    
+    /* Text colors */
+    --text-primary: #333333;
+    --text-secondary: #6A7584;
+    
+    /* Input styles */
+    --input-border: #E6E6E9;
+    --input-focused: #6A7584;
+    --file-submit-background: #F7F7F9;
+    --required: #EA3D09;
+    --error: #EA3D09;
+    
+    /* Button styles */
+    --button-primary: #3D09EA;
+    --button-hover: #2F08CE;
+    --button-secondary: #EA3D09;
+    
+    /* Semantic colors */
+    --green1: #4CBB25;
+    --green2: #E5F9DE;
+    --green3: #D6EDCE;
+    --green4: #E5F9DE;
+    --green5: #F6FDF3;
+    
+    --gray1: #6A7584;
+    --gray2: #CFCFCF;
+    --gray3: #E6E6E9;
+    --gray4: #F7F7F9;
+    
+    --purple1: #841BA0;
+    --purple2: #B035D0;
+    --purple3: #ECDDF0;
+    --purple4: #F5E7F8;
+    --purple5: #FDF5FF;
+    
+    --red1: #CA3508;
+    --red2: #EA3D09;
+    --red3: #FFC9C9;
+    --red4: #FFE9E9;
+  
+    /* Gradients */
+    --gradient-primary: linear-gradient(161.15deg, #6714CC 12.73%, #2F08CE 72.95%);
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+    
+    /* Border radius */
+    --border-radius-sm: 4px;
+    --border-radius-md: 7px;
+    --border-radius-lg: 12px;
+    --border-radius-xl: 20px;
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+  }
