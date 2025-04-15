@@ -2,7 +2,7 @@
 	"name": "frontend",
 	"version": "0.0.1",
 	"scripts": {
-		"dev": "vite dev --host --https",
+		"dev": "vite dev --host",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -13,7 +13,7 @@
 	"devDependencies": {
 		"@fontsource/fira-mono": "^4.5.10",
 		"@neoconfetti/svelte": "^1.0.0",
-		"@sveltejs/adapter-auto": "^1.0.0",
+		"@sveltejs/adapter-vercel": "^3.1.0",
 		"@sveltejs/kit": "^1.0.0",
 		"@types/cookie": "^0.5.1",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
@@ -34,11 +34,8 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@google-cloud/storage": "^6.9.0",
-		"@vitejs/plugin-basic-ssl": "^1.0.1",
 		"axios": "^1.2.2",
 		"socket.io-client": "^4.6.1",
-		"svelte-adapter-appengine": "^0.9.2",
 		"svelte-forms-lib": "^2.0.1",
 		"svelte-intersection-observer": "^0.10.0",
 		"yup": "^0.32.11"

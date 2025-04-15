@@ -1,6 +1,5 @@
 import { vitePreprocess } from '@sveltejs/kit/vite';
-import appengine from "svelte-adapter-appengine"
-
+import adapter from '@sveltejs/adapter-vercel';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -9,7 +8,7 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		adapter: appengine()
+		adapter: adapter()
 	}
 };
 
