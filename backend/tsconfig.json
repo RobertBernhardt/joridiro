@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+      "target": "es2016",
+      "noEmitOnError": true,
+      "skipLibCheck": true,
+      "typeRoots": [
+        "./node_modules/@types"
+      ],
+      "baseUrl": ".",
+      "moduleResolution": "node",
+      "downlevelIteration": true,
+      "module": "commonjs",
+      "lib": [
+        "es6"
+      ],
+      "allowJs": true,
+      "outDir": "dist",
+      "rootDir": "src",
+      "strict": false,
+      "noImplicitAny": false,
+      "esModuleInterop": true,
+      "resolveJsonModule": true
+    }
+  }

@@ -1,0 +1,6 @@
+nodemon.json
+package-lock.json
+.env
+node_modules
+joridirokey.json
+app.yaml
