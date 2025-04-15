@@ -8,7 +8,16 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		adapter: adapter()
+		// Use adapter-vercel with default options
+		adapter: adapter({
+			// Optional: specify any Vercel-specific options here
+			// For example, to make an Edge function deployment:
+			// edge: false,
+			// Split your app into multiple functions:
+			// split: false
+		}),
+		
+		// Add any other SvelteKit configuration as needed
 	}
 };
 
