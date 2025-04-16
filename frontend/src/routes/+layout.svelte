@@ -7,7 +7,7 @@
 	import './styles.css';
 	import API from '../utils/API';
 	import { onMount } from 'svelte';
-	import Verify from '$lib/Verify/verify.svelte';
+	import Verify from '$lib/Verify/Verify.svelte';
 	import { page } from '$app/stores';
 	import { user } from '$lib/stores/user';
 	import Footer from '$lib/Footer/Footer.svelte';

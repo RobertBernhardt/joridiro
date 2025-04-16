@@ -9,7 +9,7 @@
 	import API from '../../utils/API';
 	import { alert } from '$lib/Notifications/notifications';
 	import { user } from '$lib/stores/user';
-	import Verify from '$lib/Verify/verify.svelte';
+	import Verify from '$lib/Verify/Verify.svelte';
 	import { page } from '$app/stores';
 
 	let isSubmitting = false;
