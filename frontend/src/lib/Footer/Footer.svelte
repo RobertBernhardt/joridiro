@@ -711,7 +711,7 @@
 		<a href="https://drive.google.com/uc?id=1Jjk5q3UDjvCuKSZYEpIxtz7xHeIKAv4y&export=download">Privacy</a>
 		<a href="https://drive.google.com/uc?id=1ByMN54wCW3he6fz7Bylk17a1lILEJ129&export=download">Terms</a>
 	</ul>
-	<p class="copy">© Copyright 2022, All Rights Reserved by Joridiro.</p>
+	<p class="copy">© Copyright 2025, All Rights Reserved by Joridiro.</p>
 </div>
 
 <style>
