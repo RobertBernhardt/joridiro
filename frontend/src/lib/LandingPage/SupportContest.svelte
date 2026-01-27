@@ -22,7 +22,7 @@
             <p>Support your contest by sharing it with potential participants you want to have as future sellers / producers on your platform. The more people you find, the more effective your contest will be</p>
 		</div>
 		<div class="block">
-            <img src="../images/support.svg" alt="Support" />
+            <img src="/images/support.svg" alt="Support" />
         </div>
 		<div class="block">
             <div class="title">

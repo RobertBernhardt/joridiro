@@ -7,10 +7,11 @@
 	import SmallCard from './SmallCard.svelte';
 	let contests: any = []
     onMount(async ()=>{
-        const res = await API.get('/contest?page=1', {})
-        contests = res.data
+        // Backend is down, disabling API calls
+        // const res = await API.get('/contest?page=1', {})
+        // contests = res.data
         // Just show 4 contests
-        contests = contests.slice(0, 4)
+        // contests = contests.slice(0, 4)
     })
 </script>
 

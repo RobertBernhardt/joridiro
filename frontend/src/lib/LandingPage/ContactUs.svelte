@@ -6,7 +6,7 @@
 
 <div class="container">
     <div class="bg">
-        <img src="./images/contact.svg" alt="">
+        <img src="/images/contact.svg" alt="">
     </div>
 	<div class="top_clip">
 		<svg width="1680" height="112" viewBox="0 0 1680 112" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -18,7 +18,7 @@
 		</svg>
 	</div>
 	<div class="rocket">
-		<img src="./images/rocket.svg" alt="" />
+		<img src="/images/rocket.svg" alt="" />
 	</div>
 	<div class="text">
 		<h2>Overcome inertia - get momentum</h2>

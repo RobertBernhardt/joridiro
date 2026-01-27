@@ -5,7 +5,7 @@
 <div class="container">
 	<div class="bg">
 		<div class="planet">
-			<img src="./images/planet.svg" alt="">
+			<img src="/images/planet.svg" alt="">
 		</div>
 	</div>
 	<div class="top_clip">
@@ -180,7 +180,7 @@
 		justify-content: space-between;
 		gap: 100px;
 		background-color: #cc1456;
-		background-image: url('https://storage.googleapis.com/joridiro_resources/starbg.svg');
+		background-image: url('/images/starbg.svg');
 		background-repeat: no-repeat;
 		background-size: cover;
 		background-position: center;

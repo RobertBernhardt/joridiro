@@ -22,7 +22,7 @@
     .hero .background{
         width: 100%;
         height: 100%;
-        background-image: url("https://storage.googleapis.com/joridiro_resources/hero.svg");
+        background-image: url("/images/landingpagehero.svg");
         background-size: cover;
         background-position: bottom;
         background-repeat: no-repeat;

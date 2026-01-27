@@ -1,6 +1,6 @@
 <div class="container">
     <div class="image">
-        <img src="https://storage.googleapis.com/joridiro_resources/features2.svg" alt="">
+        <img src="/images/demo2.svg" alt="">
     </div>
     <div class="text">
         <h2>Get your Platform rolling</h2>
@@ -15,7 +15,7 @@
         <p>An online platform or marketplace is a great place to own if it's busy - and worthless if nobody is there yet. For the end customers it's clear that they need attractive offers and content. And you can reach them with normal ads and marketing. But it's much harder to convince the sellers or producers to come to a blank platform. Why should they? This egg-and-chicken problem has killed many ambitious startup projects. Joridiro offers a solution: giving your first users extraordinary incentives to get started and become active. Instead of having a first-user-disadvantage they can be a great winner. Of course the higher your prize is, the bigger the incentive effect</p>
     </div>
     <div class="image">
-        <img src="https://storage.googleapis.com/joridiro_resources/features1.svg" alt="">
+        <img src="/images/demo.svg" alt="">
     </div>
 </div>
 
