@@ -246,7 +246,8 @@ export function createStage(section, { W, H, focus = [0, 0, W, H], fogFront = tr
   stage.renderOnce = () => requestAnimationFrame(tick);
 
   new IntersectionObserver(([e]) => {
-    stage.visible = e.isIntersecting;
+    // isIntersecting is also true when the section merely touches the viewport edge
+    stage.visible = e.isIntersecting && e.intersectionRatio > 0;
     if (stage.visible) { stage.kick(); stage.onVisible?.(e.intersectionRatio); }
   }, { threshold: [0, 0.35, 0.6] }).observe(section);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && stage.visible) stage.kick(); });

@@ -45,6 +45,8 @@ body.night .muted-night { color: #9a93b8; }
 
 .hero { min-height: max(660px, 100svh); padding: calc(var(--header-h) + 40px) 0 60px; }
 .problem, .dominos { min-height: max(560px, 86svh); padding: 80px 0; }
+.dominos .lead, .problem .lead { max-width: 25em; }
+.dominos h2, .problem h2 { max-width: 11em; }
 
 .scene-section.portrait { align-items: flex-end; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
 .scene-section.portrait .hint { display: none; }
@@ -77,6 +79,8 @@ body.night .muted-night { color: #9a93b8; }
 .steps li::before { content: counter(s); position: absolute; left: 0; top: 2px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
   font-weight: 800; color: #05041c; background: #c6ff3a; box-shadow: 0 0 24px rgba(198, 255, 58, .45); }
 .how-demo { position: relative; }
+.how { overflow: clip; overflow-clip-margin: 40px; }
+main { overflow-x: clip; }
 .how-demo::before { content: ''; position: absolute; inset: -40px; background: radial-gradient(closest-side, rgba(255, 63, 224, .25), transparent), radial-gradient(closest-side at 70% 70%, rgba(54, 88, 226, .3), transparent); z-index: -1; }
 .how-demo .ccard { color: var(--ink); transform: rotate(-1.5deg); box-shadow: 0 30px 80px rgba(0, 0, 0, .55); }
 .how-demo .ccard:hover { transform: rotate(0) translateY(-4px); }
@@ -108,7 +112,8 @@ body.night .muted-night { color: #9a93b8; }
 /* ---------- 404 ---------- */
 .lost { min-height: 100svh; }
 .lost .content { text-align: center; margin-inline: auto; display: grid; justify-items: center; }
-.lost:not(.portrait) { align-items: flex-end; padding-bottom: 9vh; }
+.lost:not(.portrait) { align-items: flex-end; padding-bottom: 2vh; }
+.lost .hint { margin-top: 12px; }
 
 @media (prefers-reduced-motion: reduce) {
   .scene .bg, .twinkle > g, .drift-a, .drift-b, .drift-c, .flow { animation: none !important; }
