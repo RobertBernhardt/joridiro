@@ -78,11 +78,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   border-bottom: 1px solid var(--line);
 }
 .site-header .wrap { height: 100%; display: flex; align-items: center; gap: 28px; }
-.logo { display: inline-flex; align-items: center; gap: 2px; text-decoration: none; color: var(--ink); }
-.logo .wm { font-weight: 800; letter-spacing: .2em; font-size: 1.05rem; line-height: 1; }
-.logo .wm:last-child { letter-spacing: .2em; margin-right: -.2em; }
-.logo .mark { width: 38px; height: 38px; margin: -6px 2px 0 -2px; transition: transform .25s ease; }
-.logo:hover .mark { transform: translate(2px, -3px) rotate(-4deg); }
+.logo { display: inline-flex; align-items: center; text-decoration: none; }
+.logo img { height: 36px; width: auto; display: block; }
 .nav { display: flex; gap: 22px; }
 .nav a { text-decoration: none; font-weight: 600; color: var(--ink-2); padding: 6px 0; border-bottom: 2px solid transparent; }
 .nav a:hover, .nav a[aria-current="page"] { color: var(--ink); border-color: var(--brand); }

@@ -6,6 +6,8 @@
 // Everything is drawn in artwork units (the scene's W x H); canvases are mapped
 // to the current viewBox every frame so they stay registered with the SVG.
 
+import { HERO_BODY, HERO_CAPE, HERO_JETS } from './hero-figure.js';
+
 export const NS = 'http://www.w3.org/2000/svg';
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const lerp = (a, b, t) => a + (b - a) * t;
@@ -290,37 +292,27 @@ export class Particles {
   }
 }
 
-// Shared hero figure (same as the logo mark): flying pose, origin at the waist.
-// Returns { g, cape, setCape(t, speed) } – the cape waves while flying.
-export function buildHero(parent, { scale = 1, id = 'hero' } = {}) {
+// The caped hero from the logo, built from the logo's own paths (hero-figure.js).
+// Origin at the figure's centre; it flies towards the upper right, heading HERO_HEADING
+// degrees (feet to fist). Returns { g, setCape(t, speed), setJets(on) }.
+export const HERO_HEADING = -43;
+export function buildHero(parent, { scale = 1 } = {}) {
   const g = el('g', { class: 'hero' }, parent);
-  const inner = el('g', { transform: `scale(${scale})` }, g);
-  const cape = el('path', { fill: `url(#${id}Cape)` }, inner);
-  svgFrom(`<defs>
-      <linearGradient id="${id}Cape" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#ff6a2a"/><stop offset=".55" stop-color="#ea3d09"/><stop offset="1" stop-color="#6e1405"/>
-      </linearGradient>
-      <linearGradient id="${id}Suit" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#3a2050"/><stop offset=".6" stop-color="#140b22"/><stop offset="1" stop-color="#05030c"/>
-      </linearGradient>
-    </defs>
-    <g stroke-linecap="round" fill="none">
-      <path d="M0 0 L-9 13" stroke="url(#${id}Suit)" stroke-width="7"/>
-      <path d="M0 0 L4 14" stroke="url(#${id}Suit)" stroke-width="7"/>
-      <path d="M0 0 L10 -17" stroke="url(#${id}Suit)" stroke-width="9"/>
-      <path class="arm" d="M10 -17 L19 -28" stroke="url(#${id}Suit)" stroke-width="6"/>
-      <path d="M10 -17 L-1 -12" stroke="url(#${id}Suit)" stroke-width="6"/>
-      <path d="M11 -16 L18 -27" stroke="#c6ff3a" stroke-width="1.2" opacity=".55"/>
-      <path d="M2 -1 L11 -16" stroke="#c6ff3a" stroke-width="1.1" opacity=".45" transform="translate(3 1)"/>
-    </g>
-    <circle cx="14.5" cy="-23.5" r="5.2" fill="#140b22"/>
-    <path d="M17 -27a5.2 5.2 0 0 1 2.5 4" stroke="#c6ff3a" stroke-width="1.2" fill="none" opacity=".7"/>
-    <circle cx="20" cy="-29" r="2.6" fill="#140b22"/>`, inner);
-  inner.insertBefore(cape, inner.querySelector('g'));
+  // 1.8: the logo figure is ~26 units tall; keeps call sites' scale values meaningful
+  const inner = el('g', { transform: `scale(${scale * 1.8}) translate(-88 -13)` }, g);
+  const jets = el('g', {}, inner);
+  svgFrom(HERO_JETS, jets);
+  svgFrom(HERO_BODY, inner);
+  const cape = el('g', {}, inner);
+  svgFrom(HERO_CAPE, cape);
   const setCape = (t, speed = 1) => {
-    const w1 = Math.sin(t * 9 * speed) * 4, w2 = Math.sin(t * 9 * speed + 1.7) * 6;
-    cape.setAttribute('d', `M9 -16 C 2 -12 -8 ${f1(-4 + w1)} -22 ${f1(4 + w2)} C -16 ${f1(8 + w2 * .5)} -10 ${f1(6 + w1 * .5)} -4 4 C 0 0 5 -8 9 -16 Z`);
+    // the cape hangs from the shoulders (~92, 6) and flutters behind
+    const a = Math.sin(t * 9 * speed) * 4 + Math.sin(t * 15.3 * speed) * 1.5;
+    const sx = 1 + Math.sin(t * 9 * speed + 1.2) * .06;
+    cape.setAttribute('transform', `translate(92 6) rotate(${f2(a)}) scale(${f2(sx)} ${f2(2 - sx)}) translate(-92 -6)`);
+    jets.setAttribute('opacity', f2(.6 + Math.random() * .4));
   };
+  const setJets = (on) => { jets.style.display = on ? '' : 'none'; };
   setCape(0);
-  return { g, inner, cape, setCape };
+  return { g, inner, cape, setCape, setJets };
 }

@@ -69,7 +69,7 @@ export function egg404Scene(section) {
   ].map((d) => el('path', { d, stroke: '#c6ff3a', 'stroke-width': 4, fill: 'none', 'stroke-linejoin': 'round', opacity: 0 }, body));
 
   const heroWrap = el('g', { opacity: 0 }, art);
-  const hero = buildHero(heroWrap, { scale: 3, id: 'eHero' });
+  const hero = buildHero(heroWrap, { scale: 3 });
 
   const SPR = { lime: sprite('rgba(198,255,58,.9)', 64, .1), spark: sprite('rgba(255,250,220,1)', 32, .3) };
   const sparks = new Particles(120);

@@ -55,18 +55,10 @@ export const initials = (name = '') => name.split(/\s+/).filter(Boolean).slice(0
 
 /* ---------- brand art (all code, no image files) ---------- */
 
-// The mark: a hero bursting out of a cracked egg. Same figure as in the landing scenes.
-export const markSvg = (cls = '') => `<svg class="${cls}" viewBox="0 0 64 64" aria-hidden="true">
-  <path d="M26 12c-6 3-13 9-16 16" stroke="#ea3d09" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".55"/>
-  <path d="M41 15c-6 1-12 6-16 9l-9 2c5 1 10 1 14-1 4-2 8-5 11-10z" fill="#ea3d09"/>
-  <path d="M42 15 34 27M42 15l7-9M34 27l-6 6M34 27l2 7" stroke="#16131f" stroke-width="5" stroke-linecap="round" fill="none"/>
-  <circle cx="45.5" cy="10.5" r="3.6" fill="#16131f"/>
-  <path d="M13 41l5-5 4 4 5-6 4 5 5-5 4 5 5-4 5 4c0 11-8 19-18 19S13 52 13 41z" fill="#f4f1ea" stroke="#16131f" stroke-width="2.2" stroke-linejoin="round"/>
-  <path d="M17 47c2 6 7 10 13 11" stroke="#d6d0c4" stroke-width="3" stroke-linecap="round" fill="none"/>
-</svg>`;
-
-export const logoHtml = (dark = false) => `<a class="logo${dark ? ' logo-dark' : ''}" href="/" aria-label="Joridiro home">
-  <span class="wm">JORI</span>${markSvg('mark')}<span class="wm">DIRO</span></a>`;
+// The original Joridiro logo (vector files in /img). On dark backgrounds the figure and
+// the wordmark are white.
+export const logoHtml = (dark = false) => `<a class="logo" href="/" aria-label="Joridiro home">
+  <img src="/img/logo${dark ? '-white' : ''}.svg" alt="Joridiro" width="165" height="42"></a>`;
 
 // Generated cover art for contests without an uploaded image. Six palettes, deterministic shapes.
 const THEMES = [

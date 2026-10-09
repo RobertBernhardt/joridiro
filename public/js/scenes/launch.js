@@ -3,7 +3,7 @@
 //         egg    -> cracks, the caped hero hatches and flies off
 //         ringed planet -> ring spins up, the moon swings by
 //         sky    -> shooting star (every third time a UFO pays a visit)
-import { createStage, el, svgFrom, sprite, Particles, buildHero, clamp, lerp, rand, easeOut, easeIn, easeInOut, backOut, reduced, f1, f2 } from './engine.js';
+import { createStage, el, svgFrom, sprite, Particles, buildHero, HERO_HEADING, clamp, lerp, rand, easeOut, easeIn, easeInOut, backOut, reduced, f1, f2 } from './engine.js';
 
 const W = 1600, H = 900;
 const RX = 1135, RY = 708;        // rocket nozzle (bottom centre) at rest
@@ -205,7 +205,7 @@ export function launchScene(section) {
   const cabin = rocketShake.querySelector('.cabin');
 
   const heroWrap = el('g', { opacity: 0 }, actors);
-  const hero = buildHero(heroWrap, { scale: 2.3, id: 'lHero' });
+  const hero = buildHero(heroWrap, { scale: 2.3 });
 
   const ufoG = el('g', { opacity: 0 }, actors);
   svgFrom(`<g>
@@ -424,7 +424,7 @@ export function launchScene(section) {
         }
         heroS.x += heroS.vx * dt; heroS.y += heroS.vy * dt;
         const dirX = heroS.vx < 0 ? -1 : 1;
-        const ang = Math.atan2(heroS.vy, Math.abs(heroS.vx)) * 180 / Math.PI + 56;
+        const ang = Math.atan2(heroS.vy, Math.abs(heroS.vx)) * 180 / Math.PI - HERO_HEADING;
         heroWrap.setAttribute('transform', `translate(${f1(heroS.x)} ${f1(heroS.y)}) scale(${dirX} 1) rotate(${f1(ang)})`);
         if (Math.random() < .6) sparks.add({ x: heroS.x - heroS.vx * .03, y: heroS.y - heroS.vy * .03, vx: rand(-20, 20), vy: rand(-20, 20), life: .5, img: SPR.lime, size: 5 });
         if (!heroS.wp.length || heroS.y < -200 || heroS.x > W + 200) heroS.active = false;

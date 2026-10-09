@@ -107,7 +107,7 @@ export function dominoScene(section) {
   }
 
   const heroWrap = el('g', { opacity: 0 }, art);
-  const hero = buildHero(heroWrap, { scale: 2.1, id: 'dHero' });
+  const hero = buildHero(heroWrap, { scale: 2.1 });
 
   /* ---------- effects ---------- */
   const SPR = { dust: sprite('rgba(120,96,160,.85)', 96, .2), glow: sprite('rgba(255,236,120,.85)', 128, 0), spark: sprite('rgba(255,255,220,1)', 32, .3) };
@@ -194,19 +194,19 @@ export function dominoScene(section) {
     let hx, hy, rot, sc = 1, vis = 1;
     if (state.mode === 'waiting' || state.mode === 'reset') {
       vis = state.mode === 'reset' ? 1 - clamp(state.reset / .5, 0, 1) : 0;
-      hx = lerp(heroLanded().x, -150, clamp(state.reset / .9, 0, 1)); hy = heroLanded().y - 200 * clamp(state.reset / .9, 0, 1); rot = -20; sc = -1;
+      hx = lerp(heroLanded().x, -150, clamp(state.reset / .9, 0, 1)); hy = heroLanded().y - 200 * clamp(state.reset / .9, 0, 1); rot = -33; sc = -1;
     } else if (T < KICK) {
       const k = easeInOut(T / KICK);
-      hx = lerp(-160, stones[0].x - 26, k); hy = lerp(120, FLOOR - stones[0].h * .75, k) - Math.sin(k * Math.PI) * 60; rot = lerp(30, 64, k);
+      hx = lerp(-160, stones[0].x - 26, k); hy = lerp(120, FLOOR - stones[0].h * .75, k) - Math.sin(k * Math.PI) * 60; rot = lerp(17, 51, k);
     } else if (T < KICK + .25) {
-      hx = stones[0].x - 26 + (T - KICK) * 40; hy = FLOOR - stones[0].h * .75; rot = 64;
+      hx = stones[0].x - 26 + (T - KICK) * 40; hy = FLOOR - stones[0].h * .75; rot = 51;
       if (T - KICK < dt * 1.5) { flash = Math.max(flash, .35); for (let i = 0; i < 18; i++) sparks.add({ x: stones[0].x, y: FLOOR - stones[0].h * .7, vx: rand(40, 260), vy: rand(-200, 60), life: rand(.3, .7), size: rand(3, 6) }); }
     } else {
       const land = heroLanded();
       const k = clamp((T - KICK - .25) / (END - KICK + .4), 0, 1);
       const e = easeInOut(k);
       hx = lerp(stones[0].x - 16, land.x, e); hy = lerp(FLOOR - stones[0].h * .75, land.y, e) - Math.sin(e * Math.PI) * 240;
-      rot = lerp(40, -30, e);
+      rot = lerp(27, -45, e);
     }
     heroWrap.setAttribute('opacity', f2(vis));
     heroWrap.setAttribute('transform', `translate(${f1(hx)} ${f1(hy)}) scale(${sc < 0 ? -1 : 1} 1) rotate(${f1(rot)})`);
