@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { fail } from './http.js';
 import { hashPassword, checkPassword, createSession, destroySession, allowAttempt } from './auth.js';
 import { createCheckout, stripeEnabled, verifyWebhook } from './payments.js';
-import { SIZES, TYPES, deriveState, validateContest, prizePool, price } from '../shared/rules.js';
+import { SIZES, TYPES, deriveState, validateContest, prizePool, price } from '../public/shared/rules.js';
 
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -203,7 +203,7 @@ export const routes = [
     if (!row || !isOrganizer(ctx, row)) fail(404, 'Contest not found.');
     if (row.status !== 'draft') fail(400, 'This contest is already live.');
     if (!stripeEnabled()) {
-      if (ctx.production) fail(503, 'Payments are not configured.');
+      if (!ctx.devPayments) fail(503, 'Payments are not configured.');
       activate(ctx.db, row.id, ctx.now); // dev mode: no payment provider, go live immediately
       return { activated: true };
     }

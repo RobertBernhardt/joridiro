@@ -30,19 +30,20 @@ export function createApp({
   dbFile = process.env.DB_FILE || join(ROOT, 'data', 'joridiro.db'),
   uploadDir = process.env.UPLOAD_DIR || join(ROOT, 'data', 'uploads'),
   production = process.env.NODE_ENV === 'production',
+  // Activate contests without payment when no Stripe key is set. Always on in
+  // development; in production only for the public demo (DEMO_MODE=1).
+  devPayments = !production || process.env.DEMO_MODE === '1',
   clock = Date.now,
 } = {}) {
   const db = openDb(dbFile);
   const publicDir = join(ROOT, 'public');
-  const sharedDir = join(ROOT, 'shared');
 
-  const server = createServer(async (req, res) => {
+  const handle = async (req, res) => {
     const url = new URL(req.url, 'http://local');
     const path = decodeURIComponent(url.pathname);
     try {
       if (path.startsWith('/api/')) return await handleApi(req, res, url, path);
       if (req.method !== 'GET' && req.method !== 'HEAD') return sendJson(res, 405, { error: 'Method not allowed' });
-      if (path.startsWith('/shared/') && serveFile(req, res, sharedDir, path.slice(8))) return;
       if (path.startsWith('/uploads/') && serveFile(req, res, uploadDir, path.slice(9))) return;
       const page = PAGES.find(([re]) => re.test(path));
       if (page && serveFile(req, res, publicDir, page[1])) return;
@@ -52,7 +53,8 @@ export function createApp({
       console.error(err);
       if (!res.headersSent) sendJson(res, 500, { error: 'Something went wrong on our side.' });
     }
-  });
+  };
+  const server = createServer(handle);
 
   async function handleApi(req, res, url, path) {
     const route = compiled.find((r) => r.method === req.method && r.re.test(path));
@@ -79,7 +81,7 @@ export function createApp({
     const secure = production || proto === 'https';
     const cookies = [];
     const ctx = {
-      db, now, req, url, body, rawBody, production, uploadDir, token,
+      db, now, req, url, body, rawBody, production, devPayments, uploadDir, token,
       ip: req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress,
       origin: `${proto}://${req.headers.host}`,
       user: userFromToken(db, token, now),
@@ -97,7 +99,7 @@ export function createApp({
     }
   }
 
-  return { server, db };
+  return { server, db, handle };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -30,6 +30,7 @@ Environment variables:
 | `DB_FILE` | `data/joridiro.db` | SQLite file |
 | `UPLOAD_DIR` | `data/uploads` | uploaded covers and logos |
 | `NODE_ENV` | | `production` forces secure cookies and disables dev payments |
+| `DEMO_MODE` | | `1` allows contests to go live without payment in production |
 | `STRIPE_SECRET_KEY` | | enables Stripe Checkout; without it contests go live without payment (dev only) |
 | `STRIPE_WEBHOOK_SECRET` | | verifies `/api/stripe/webhook` |
 | `STRIPE_AUTOMATIC_TAX` | | `1` turns on Stripe Tax at checkout |
@@ -37,9 +38,10 @@ Environment variables:
 ## Layout
 
 ```
-shared/rules.js     contest sizes, prices, scoring, standings, winners, lottery
+public/shared/rules.js  contest sizes, prices, scoring, standings, winners, lottery
                     (pure functions, used by server and browser)
 server/             node:http server, SQLite, auth, Stripe, JSON API, demo seed
+api/handler.js      the same server as a Vercel Function (demo hosting)
 public/             static pages: plain HTML + ES modules, no build step
   js/lib.js         escaping html`` templates, fetch wrapper, header/footer, modals
   js/pages/         one module per page
@@ -135,5 +137,9 @@ These were in the old version or will be needed, but should be decided first:
 - An end date for score contests nobody finishes.
 - Updated legal pages: `public/legal/*-2023.pdf` and the imprint are copied from
   the 2023 site unchanged.
-- Hosting: one Node process with a SQLite file needs a persistent disk (a small
-  VPS, Fly.io or Railway). Serverless platforms like Vercel don't fit as is.
+- Real hosting. The Vercel deployment (`vercel.json` + `api/handler.js`) is a
+  **demo**: Vercel has no persistent disk, so the SQLite file lives in `/tmp`,
+  is re-seeded with the demo data on every cold start, and each function
+  instance has its own copy. Sign-ups and new contests disappear. For real use,
+  run `npm start` on a machine with a disk (small VPS, Fly.io, Railway) or swap
+  `server/db.js` for a hosted database.

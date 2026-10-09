@@ -1,8 +1,8 @@
 // Stripe Checkout without the Stripe SDK: two HTTPS calls and an HMAC check.
 // Without STRIPE_SECRET_KEY the server runs in dev mode and contests are
-// activated directly (never in production, see api.js).
+// activated directly (in production only with DEMO_MODE=1, see api.js).
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { SIZES } from '../shared/rules.js';
+import { SIZES } from '../public/shared/rules.js';
 
 const API = 'https://api.stripe.com/v1';
 

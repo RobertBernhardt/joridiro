@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DAY, CONFIRM_WINDOW, SIZES, price, prizePool, methodPoints, replay, pickWeighted, deriveState, validateContest } from '../shared/rules.js';
+import { DAY, CONFIRM_WINDOW, SIZES, price, prizePool, methodPoints, replay, pickWeighted, deriveState, validateContest } from '../public/shared/rules.js';
 
 const T0 = Date.UTC(2026, 0, 1, 10);
 const methods = [{ label: 'orders', per: 1, points: 1 }, { label: '€ revenue', per: 150, points: 1 }];

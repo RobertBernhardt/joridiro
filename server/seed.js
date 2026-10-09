@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { openDb } from './db.js';
 import { hashPassword } from './auth.js';
-import { DAY } from '../shared/rules.js';
+import { DAY } from '../public/shared/rules.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 

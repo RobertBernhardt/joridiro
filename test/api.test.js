@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHmac } from 'node:crypto';
 import { createApp } from '../server/index.js';
-import { DAY } from '../shared/rules.js';
+import { DAY } from '../public/shared/rules.js';
 
 let base, app, clock = Date.UTC(2026, 3, 1, 9), tmp;
 before(async () => {
