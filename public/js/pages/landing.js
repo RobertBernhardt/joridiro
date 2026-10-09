@@ -35,7 +35,7 @@ render($('#price-grid'), Object.entries(SIZES).map(([key, s]) => html`<div class
     <li>${s.lottery ? `Lottery ${money(s.lottery)}` : 'No lottery'}</li>
     <li>${s.days} days or first to ${s.targetScore} points</li>
   </ul>
-  <a class="btn ${key === 'medium' ? 'btn-primary' : 'btn-glass'}" href="/create">Choose ${s.name.toLowerCase()}</a>
+  <a class="btn ${key === 'medium' ? 'btn-primary' : 'btn-glass'}" href="/create?size=${key}">Choose ${s.name.toLowerCase()}</a>
 </div>`));
 
 api('GET', '/api/contests').then(({ contests }) => {

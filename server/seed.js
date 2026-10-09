@@ -37,7 +37,15 @@ const CONTESTS = [
       boost: 'Our riders are on standby from day one, and we run a city-wide poster and social campaign aimed at hungry Londoners for the full 45 days.',
       tags: ['Food delivery', 'London', 'Restaurants'],
       rules: ['Orders must be delivered within 15 minutes to count.', 'Only one review point per customer.'],
-      requirements: ['Your restaurant is inside a Quartermeal London zone.', 'You own or manage the restaurant.'],
+      requirements: [
+        { title: 'Location', text: 'Your restaurant is inside a Quartermeal delivery zone in London.' },
+        { title: 'Roles', text: 'You own or manage the restaurant.' },
+        { title: 'Category', text: 'Only dishes listed in the “Ready in 8 minutes” category earn points.' },
+      ],
+      survey: [
+        { question: 'How fast is your fastest dish ready?', answers: ['Under 5 minutes', '5 to 8 minutes', 'Over 8 minutes'] },
+        { question: 'Do you already deliver with another service?', answers: ['Yes', 'No'] },
+      ],
       company: { name: 'Quartermeal', url: 'https://quartermeal.example.com', about: 'Food delivery that guarantees 15 minutes from order to door.' },
       methods: [
         { label: 'orders', per: 1, points: 1, note: 'Every delivered order' },
@@ -67,7 +75,8 @@ const CONTESTS = [
       boost: 'We are paying the town criers of all four Shire farthings to announce RingBazaar daily.',
       tags: ['Marketplace', 'Jewellery', 'Middle-earth'],
       rules: ['No eagles. I hate them.', 'Only metal rings. No screw nuts, you dwarves.', 'You must legally own every ring you sell.'],
-      requirements: ['You sell rings on RingBazaar under your own name.'],
+      requirements: [{ title: 'Real name', text: 'You sell rings on RingBazaar under your own, verified name.' }],
+      survey: [{ question: 'What do you forge most?', answers: ['Gold rings', 'Silver rings', 'Rings of power', 'Other metals'] }],
       company: { name: 'RingBazaar', url: 'https://ringbazaar.example.com', about: 'The marketplace for every ring in Middle-earth.' },
       methods: [
         { label: 'rings sold', per: 1, points: 1, note: 'Any ordinary ring' },
@@ -147,8 +156,9 @@ export function seed(dbFile = process.env.DB_FILE || join(ROOT, 'data', 'joridir
       people.forEach((uid, i) => {
         const alias = c.aliases[i];
         const joinedAt = startAt + rand() * DAY * Math.min(2, c.startedDaysAgo * 0.4);
-        db.run('INSERT INTO participants (contest_id, user_id, alias, profile_url, joined_at) VALUES (?, ?, ?, ?, ?)',
-          c.id, uid, alias, `https://example.com/profile/${i}`, joinedAt);
+        const answers = (c.data.survey || []).map((q) => Math.floor(rand() * q.answers.length));
+        db.run('INSERT INTO participants (contest_id, user_id, alias, profile_url, joined_at, answers) VALUES (?, ?, ?, ?, ?, ?)',
+          c.id, uid, alias, `https://example.com/profile/${i}`, joinedAt, JSON.stringify(answers));
 
         // A score history: roughly daily updates with growing cumulative values.
         const skill = 0.4 + rand() * 1.2;

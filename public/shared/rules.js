@@ -210,6 +210,9 @@ export function validateContest(input) {
   const errors = {};
   const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
   const list = (v, max, n) => (Array.isArray(v) ? v.map((x) => str(x, max)).filter(Boolean).slice(0, n) : []);
+  // Requirements and rules: { title, text }. A plain string is a text without title.
+  const items = (v, n) => (Array.isArray(v) ? v.map((x) => (typeof x === 'string' ? { title: '', text: str(x, 300) }
+    : { title: str(x?.title, 60), text: str(x?.text, 300) })).filter((x) => x.text).slice(0, n) : []);
 
   const value = {
     title: str(input.title, 90),
@@ -222,8 +225,12 @@ export function validateContest(input) {
     howToWin: str(input.howToWin, 1500),
     boost: str(input.boost, 1500),
     tags: list(input.tags, 30, 6),
-    rules: list(input.rules, 300, 10),
-    requirements: list(input.requirements, 300, 10),
+    rules: items(input.rules, 10),
+    requirements: items(input.requirements, 12),
+    // Multiple-choice questions participants answer when they join.
+    survey: Array.isArray(input.survey) ? input.survey.slice(0, 5).map((q) => ({
+      question: str(q?.question, 200), answers: list(q?.answers, 100, 4),
+    })) : [],
     company: { name: str(input.company?.name, 80), url: str(input.company?.url, 300), about: str(input.company?.about, 600) },
     methods: Array.isArray(input.methods) ? input.methods.slice(0, 3).map((m) => ({
       label: str(m?.label, 60),
@@ -240,5 +247,6 @@ export function validateContest(input) {
   if (!/^https?:\/\/\S+\.\S+/.test(value.platformUrl)) errors.platformUrl = 'Link to the platform where participants compete (https://…).';
   if (value.summary.length < 20) errors.summary = 'Describe the contest in at least 20 characters.';
   if (!value.methods.length || value.methods.some((m) => !m.label)) errors.methods = 'Add at least one way to score, each with a name.';
+  if (value.survey.some((q) => !q.question || q.answers.length < 2)) errors.survey = 'Every question needs a text and at least two answers.';
   return { errors, value };
 }

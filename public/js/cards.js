@@ -13,7 +13,7 @@ export function contestCard(c) {
       <div class="meta">
         <span class="chip ${c.phase}">${c.phase === 'live' ? 'Live' : 'Ended'}</span>
         <span class="chip ${c.type}">${TYPES[c.type].short}</span>
-        ${flames(SIZES[c.size].level)}
+        ${flames(SIZES[c.size].level, c.type)}
       </div>
       <div class="figures">
         <div class="figure"><div class="k">Prize pool</div><div class="v">${money(c.pool)}</div></div>

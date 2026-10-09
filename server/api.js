@@ -10,6 +10,7 @@ import { SIZES, TYPES, deriveState, validateContest, prizePool, price } from '..
 
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const DETAIL_FIELDS = ['company', 'vatId', 'taxId', 'street', 'zip', 'city', 'country'];
 
 /* ---------- contest loading and state ---------- */
 
@@ -54,6 +55,14 @@ function card(db, row, now) {
     phase: state.phase, startAt: state.startAt, endsAt: state.endsAt,
     participants: participants.length, best: state.standings[0]?.points ?? 0,
   };
+}
+
+function surveyStats(db, contestId, survey) {
+  const counts = survey.map((q) => q.answers.map(() => 0));
+  for (const { answers } of db.all('SELECT answers FROM participants WHERE contest_id = ?', contestId)) {
+    (answers ? JSON.parse(answers) : []).forEach((a, i) => { if (counts[i]?.[a] !== undefined) counts[i][a] += 1; });
+  }
+  return counts;
 }
 
 function slugify(db, title) {
@@ -127,7 +136,24 @@ export const routes = [
     return { ok: true };
   }],
 
-  ['GET', '/api/me', (ctx) => ({ user: ctx.user })],
+  ['GET', '/api/me', (ctx) => {
+    if (!ctx.user) return { user: null };
+    const row = ctx.db.get('SELECT details FROM users WHERE id = ?', ctx.user.id);
+    return { user: { ...ctx.user, details: row?.details ? JSON.parse(row.details) : {} } };
+  }],
+
+  // Profile and billing details (the dashboard's "My details" tab).
+  ['POST', '/api/me', (ctx) => {
+    const user = requireUser(ctx);
+    const name = str(ctx.body.name, 80);
+    if (name.length < 2) fail(400, 'Please check the form.', { name: 'Tell us your name.' });
+    const d = ctx.body.details || {};
+    const before = JSON.parse(ctx.db.get('SELECT details FROM users WHERE id = ?', user.id)?.details || '{}');
+    const details = Object.fromEntries(DETAIL_FIELDS.map((k) => [k, str(d[k], 120)]));
+    details.avatar = ctx.body.avatar === null ? null : saveImage(ctx.body.avatar, ctx.uploadDir) || before.avatar || null;
+    ctx.db.run('UPDATE users SET name = ?, details = ? WHERE id = ?', name, JSON.stringify(details), user.id);
+    return { user: { ...user, name, details } };
+  }],
 
   ['GET', '/api/contests', (ctx) => {
     const rows = ctx.db.all("SELECT * FROM contests WHERE status = 'live' ORDER BY start_at DESC");
@@ -180,8 +206,10 @@ export const routes = [
         id: row.id, status: row.status, type: row.type, size: row.size, cover: row.cover, logo: row.logo,
         title: d.title, summary: d.summary, purpose: d.purpose, audience: d.audience, howToWin: d.howToWin, boost: d.boost,
         tags: d.tags, rules: d.rules, requirements: d.requirements, company: d.company, methods: d.methods,
-        platformUrl: d.platformUrl, theme: d.theme, pool: prizePool(row.size), price: price(row.size),
+        survey: d.survey || [], platformUrl: d.platformUrl, theme: d.theme, pool: prizePool(row.size), price: price(row.size),
       },
+      // How participants answered the join survey: counts per answer, organizer only.
+      surveyStats: organizer && d.survey?.length ? surveyStats(ctx.db, row.id, d.survey) : null,
       state: {
         phase: state.phase, startAt: state.startAt, endsAt: state.endsAt,
         prizes: state.prizes.map((p) => ({ ...p, winner: person(p.winner) })),
@@ -234,10 +262,14 @@ export const routes = [
     if (alias.length < 2) errors.alias = 'Pick an alias of at least 2 characters.';
     if (!/^https?:\/\/\S+\.\S+/.test(profileUrl)) errors.profileUrl = 'Paste the link to your profile on the platform.';
     if (ctx.body.acceptRules !== true) errors.acceptRules = 'You need to accept the requirements and rules.';
+    const survey = row.data.survey || [];
+    const answers = survey.map((q, i) => ctx.body.answers?.[i]);
+    if (answers.some((a, i) => !Number.isInteger(a) || a < 0 || a >= survey[i].answers.length)) errors.answers = 'Please answer every question.';
     if (Object.keys(errors).length) fail(400, 'Please check the form.', errors);
     if (ctx.db.get('SELECT 1 FROM participants WHERE contest_id = ? AND user_id = ?', row.id, user.id)) fail(400, 'You already joined.');
     if (ctx.db.get('SELECT 1 FROM participants WHERE contest_id = ? AND alias = ?', row.id, alias)) fail(409, 'Alias taken.', { alias: 'Someone already uses this alias here.' });
-    ctx.db.run('INSERT INTO participants (contest_id, user_id, alias, profile_url, joined_at) VALUES (?, ?, ?, ?, ?)', row.id, user.id, alias, profileUrl, ctx.now);
+    ctx.db.run('INSERT INTO participants (contest_id, user_id, alias, profile_url, joined_at, answers) VALUES (?, ?, ?, ?, ?, ?)',
+      row.id, user.id, alias, profileUrl, ctx.now, JSON.stringify(answers));
     return { ok: true };
   }],
 

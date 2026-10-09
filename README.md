@@ -79,6 +79,15 @@ Participants report their **cumulative** totals; points are
 `floor(value / M) * N`. (The old code used `floor(N / M * value)`, which counts
 partial blocks: "3 points for every 2 reviews" gave 4 points for 3 reviews instead of 3.)
 
+### Requirements, rules and the join survey
+
+Requirements and rules are `{ title, text }` items (a plain string is a text
+without title). The create page turns its requirement toggles (category,
+companies/individuals, real name, demographics, regions, roles) into such items,
+so the contest page simply lists them. Organizers can add up to five
+multiple-choice questions (2–4 answers). Participants answer them when they
+join; only the organizer sees the counts.
+
 ### Prices
 
 | Size | Grand prize | Milestones | Lottery | Fee | Total (net) | Duration / target |
@@ -93,6 +102,16 @@ scrypt password hashes, random session tokens stored hashed, `HttpOnly` +
 `SameSite=Lax` cookies, JSON-only POSTs with an Origin check (CSRF), a strict
 Content-Security-Policy, escaped templates, path-traversal-safe static serving,
 upload type and size limits, a login rate limit, verified Stripe webhooks.
+
+## Design
+
+The app pages (create, contest, dashboard) follow the designer's Figma file
+(`Joridiro`, frames "New Creating the Contest", "Contest page", "Profile"):
+Catamaran, 7px corners, hairline borders `#E6E6E9`, orange actions `#EA3D09`,
+purple `#841BA0` for score contests and selections, green `#4CBB25` for deadline
+contests. All tokens are CSS variables at the top of `public/css/app.css`.
+Icons are inline stroke SVGs (`icon()` in `lib.js`), the size rockets are drawn
+in code (`rocketSvg()`), and the logo is the original vector file in `public/img`.
 
 ## The scenes
 
@@ -131,7 +150,10 @@ site's images alone were about 17 MB.
 These were in the old version or will be needed, but should be decided first:
 
 - Email verification and password reset (needs a mail provider).
-- Paying out winners: identity, tax ID, bank details, payouts (e.g. Stripe Connect).
+- Paying out winners: identity checks, bank details, payouts (e.g. Stripe Connect).
+  The dashboard already collects billing details (VAT ID, tax ID, address).
+- File and picture attachments for the "About the contest" section (the design
+  has them; only the banner and the logo are uploaded so far).
 - Messaging between organizer and participants (was socket.io), contest editing
   with admin approval, an admin panel.
 - An end date for score contests nobody finishes.

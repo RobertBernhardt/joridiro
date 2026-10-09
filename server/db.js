@@ -79,6 +79,11 @@ export function openDb(file) {
   const db = new DatabaseSync(file);
   db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
   db.exec(SCHEMA);
+  // Columns added after the first release. SQLite has no ADD COLUMN IF NOT EXISTS.
+  for (const [table, column, type] of [['users', 'details', 'TEXT'], ['participants', 'answers', 'TEXT']]) {
+    const has = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
+    if (!has) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  }
 
   const cache = new Map();
   const stmt = (sql) => {

@@ -1,5 +1,5 @@
 import { chrome, api, html, raw, render, $, $$, esc, money, num, date, dateTime, duration, ago, flames, coverSvg, initials,
-  modal, bindForm, toast, loginUrl, perUnit } from '../lib.js';
+  modal, bindForm, toast, loginUrl, perUnit, icon } from '../lib.js';
 import { SIZES, TYPES, methodPoints } from '/shared/rules.js';
 
 const id = decodeURIComponent(location.pathname.split('/')[2] || '');
@@ -8,19 +8,10 @@ const user = await chrome({ active: 'contests' });
 const main = $('#main');
 let data;
 
-const ICON = {
-  flag: '<path d="M5 21V4m0 0h11l-2 4 2 4H5"/>',
-  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0V4zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4m-4 3h8"/>',
-  ticket: '<path d="M4 8a2 2 0 0 0 0 4v4h16v-4a2 2 0 0 1 0-4V4H4v4zM12 6v2m0 3v2m0 3v1"/>',
-  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-9v.5"/>',
-  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
-  check: '<path d="M4 6h10M4 12h10M4 18h10M17 6l1.5 1.5L21 5M17 12l1.5 1.5L21 11"/>',
-  rules: '<path d="M14 5c-1-1-6-1-6 2s6 2 6 5-5 3-6 2M10 9c-1 1-1 4 3 5"/>',
-  megaphone: '<path d="M3 10v4h3l7 4V6L6 10H3zM16 9a4 4 0 0 1 0 6"/>',
-  chat: '<path d="M4 5h16v11H9l-5 4V5z"/>',
-  podium: '<path d="M9 21V9h6v12M3 21v-7h6M15 21v-5h6v5M3 21h18"/>',
-};
-const icon = (name) => raw(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name]}</svg>`);
+// Requirements get an icon by their title; anything else gets the pointing hand.
+const REQ_ICON = { location: 'pin', roles: 'crosshair', 'real name': 'idcard', participants: 'people', demographics: 'people', category: 'tag' };
+const asItem = (r) => (typeof r === 'string' ? { title: '', text: r } : r);
+const tip = (text) => html`<span class="help" title="${text}" aria-label="${text}" role="img">${icon('help')}</span>`;
 
 async function load() {
   try {
@@ -36,13 +27,12 @@ async function load() {
 
 /* ---------- pieces ---------- */
 
+// Progress ring: time for deadline contests, best score for score contests. Milestones sit on the ring.
 function ring() {
   const { contest: c, state: s, standings } = data;
   const size = SIZES[c.size];
-  const R = 96, C = 2 * Math.PI * R;
-  let frac = 0, center;
-  const color = c.type === 'deadline' ? 'var(--green)' : 'var(--purple-2)';
-  let marks = [];
+  const R = 94, C = 2 * Math.PI * R;
+  let frac = 0, center, marks = [];
   if (c.type === 'deadline') {
     if (s.startAt) frac = Math.min(1, (Date.now() - s.startAt) / (s.endsAt - s.startAt));
     marks = size.milestones.map((m) => m.days / size.days);
@@ -50,29 +40,30 @@ function ring() {
       ? html`<span class="k">Duration</span><span class="v">${size.days} days</span><span class="s">starts when paid</span>`
       : s.phase === 'ended'
         ? html`<span class="k">Deadline</span><span class="v">Ended</span><span class="s">${date(s.endsAt)}</span>`
-        : html`<span class="k">Time left</span><span class="v" data-countdown="${s.endsAt}">${duration(s.endsAt - Date.now())}</span><span class="s">ends ${date(s.endsAt)}</span>`;
+        : html`<span class="k">Deadline</span><span class="v" data-countdown="${s.endsAt}">${duration(s.endsAt - Date.now())}</span><span class="s">ends ${date(s.endsAt)}</span>`;
   } else {
     const best = standings[0]?.points ?? 0;
     frac = Math.min(1, best / size.targetScore);
     marks = size.milestones.map((m) => m.points / size.targetScore);
-    center = html`<span class="k">Best result</span><span class="v">${num(best)}</span><span class="s">of ${size.targetScore} points</span>`;
+    center = html`<span class="k">Target</span><span class="v">${num(size.targetScore)}</span><span class="s">best so far ${num(best)}</span>`;
   }
   const pos = (f) => {
     const a = f * 2 * Math.PI - Math.PI / 2;
-    return [110 + R * Math.cos(a), 110 + R * Math.sin(a)];
+    return [105 + R * Math.cos(a), 105 + R * Math.sin(a)];
   };
-  const markers = marks.map((f) => {
+  const marker = (f, glyph) => {
     const [x, y] = pos(f);
     const done = frac >= f;
-    return `<circle cx="${x}" cy="${y}" r="11" fill="${done ? 'currentColor' : '#fff'}" stroke="currentColor" stroke-width="2.5"/>
-      <path d="M${x - 3.5} ${y + 5}v-10h6l-1.2 2.5 1.2 2.5h-6" fill="none" stroke="${done ? '#fff' : 'currentColor'}" stroke-width="1.8" stroke-linejoin="round"/>`;
-  }).join('');
-  return html`<div class="ring" style="color:${color}">
-    <svg viewBox="0 0 220 220" role="img" aria-label="Progress ${Math.round(frac * 100)} percent">
-      <circle cx="110" cy="110" r="${R}" fill="none" stroke="#ededf0" stroke-width="12"/>
-      <circle cx="110" cy="110" r="${R}" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round"
-        stroke-dasharray="${(frac * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 110 110)"/>
-      ${raw(markers)}
+    return `<g transform="translate(${x - 12} ${y - 12})"><circle cx="12" cy="12" r="12" fill="${done ? 'currentColor' : '#fff'}" stroke="${done ? 'currentColor' : '#cfcfcf'}" stroke-width="2"/>
+      <g transform="translate(5 5) scale(.58)" fill="none" stroke="${done ? '#fff' : '#6a7584'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${glyph}</g></g>`;
+  };
+  const FLAG = '<path d="M6 21V4m0 1h11l-2.5 4L17 13H6"/>', PODIUM = '<path d="M9 21V10h6v11M3 21v-7h6M15 21v-5h6v5"/>';
+  return html`<div class="ring" style="color:${c.type === 'deadline' ? 'var(--green)' : 'var(--purple)'}">
+    <svg viewBox="0 0 210 210" role="img" aria-label="Progress ${Math.round(frac * 100)} percent">
+      <circle cx="105" cy="105" r="${R}" fill="none" stroke="#d9d9d9" stroke-width="7"/>
+      <circle cx="105" cy="105" r="${R}" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"
+        stroke-dasharray="${(frac * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 105 105)"/>
+      ${raw(marks.map((f) => marker(f, FLAG)).join('') + marker(1, PODIUM))}
     </svg>
     <div class="center">${center}</div>
   </div>`;
@@ -85,10 +76,10 @@ function sidePanel() {
   if (role === 'organizer') {
     const pending = s.prizes.filter((p) => p.status === 'pending').length;
     cta = s.phase === 'draft'
-      ? html`<button class="btn btn-primary btn-block" data-act="pay">Pay ${money(c.price)} and go live</button>
-        <p class="small muted" style="margin:10px 0 0">Prize pool ${money(c.pool)} + Joridiro fee, plus VAT where it applies.</p>`
+      ? html`<button class="btn btn-primary btn-block btn-lg" data-act="pay">Pay ${money(c.price)} and go live</button>
+        <p class="note">Prize pool ${money(c.pool)} plus Joridiro fee, plus VAT where it applies.</p>`
       : html`${pending ? html`<a class="btn btn-primary btn-block" href="#prizes">${pending} winner${pending > 1 ? 's' : ''} to confirm</a>` : ''}
-        <a class="btn btn-ghost btn-block" href="#news" style="margin-top:8px">Post an announcement</a>`;
+        <a class="btn btn-ghost btn-block" href="#news">${icon('megaphone')}Post an announcement</a>`;
   } else if (role === 'participant') {
     const today = entry.lastAt && new Date(entry.lastAt).toDateString() === new Date().toDateString();
     cta = html`<div class="myentry">
@@ -96,36 +87,42 @@ function sidePanel() {
         <div class="figure"><div class="k">Points</div><div class="v">${num(entry.points)}</div></div>
         <div class="figure"><div class="k">Tickets</div><div class="v">${entry.tickets}</div></div>
       </div>
-      ${live ? html`<button class="btn btn-primary btn-block" data-act="score">Update my score</button>
-        <p class="small muted" style="margin:10px 0 0">${entry.lastAt ? `Last update ${ago(entry.lastAt)}.` : 'No update yet.'}
+      ${live ? html`<button class="btn btn-primary btn-block btn-lg" data-act="score">Update my score</button>
+        <p class="note">${entry.lastAt ? `Last update ${ago(entry.lastAt)}.` : 'No update yet.'}
         ${SIZES[c.size].lottery && !today ? ' Update today to earn a lottery ticket.' : ''}</p>` : ''}`;
   } else if (live) {
-    cta = html`<button class="btn btn-primary btn-block" data-act="join">Join this contest</button>
-      <p class="small muted" style="margin:10px 0 0">Free to join. You need a profile on ${c.company.name || 'the platform'}.</p>`;
+    cta = html`<button class="btn btn-primary btn-block btn-lg" data-act="join">Join contest</button>
+      <p class="note">Free to join. You need a profile on ${c.company.name || 'the platform'}.</p>`;
   } else if (s.phase === 'ended') {
-    cta = html`<p class="muted" style="margin:0;text-align:center">This contest has ended.</p>`;
+    cta = html`<p class="note">This contest has ended.</p>`;
   }
+  const items = c.requirements.length, rules = c.rules.length;
   return html`<aside class="side">
-    <div class="card panel">${ring()}${cta}</div>
-    <nav class="card toc" aria-label="On this page">
-      <a href="#prizes">Prizes</a><a href="#about">About</a><a href="#score">How to score</a>
-      ${c.requirements.length || c.rules.length ? html`<a href="#rules">Requirements & rules</a>` : ''}
-      <a href="#news">Announcements</a><a href="#faq">Questions</a><a href="#board">Leaderboard</a>
+    ${ring()}
+    <div class="cta">${cta}</div>
+    <nav class="toc" aria-label="On this page">
+      <a href="#prizes">Status</a>${hasAbout(c) ? html`<a href="#about">About</a>` : ''}<a href="#score">How to score</a>
+      ${items ? html`<a href="#requirements">Requirements</a>` : ''}${rules ? html`<a href="#rules">Rules</a>` : ''}
+      <a href="#news">Announcements</a><a href="#faq">FAQs</a>${data.surveyStats ? html`<a href="#survey">Questions to participants</a>` : ''}<a href="#board">Leaderboard</a>
     </nav>
   </aside>`;
 }
 
-function prizeRow(p) {
-  const { role } = data;
-  const icons = { milestone: 'flag', grand: 'trophy', lottery: 'ticket' };
+const hasAbout = (c) => c.company.about || c.purpose || c.audience || c.howToWin || c.boost;
+
+function prizeRow(p, next) {
+  const { role, contest: c } = data;
+  const icons = { milestone: 'flag', grand: 'podium', lottery: 'ticket' };
   const statusChip = {
     upcoming: '', pending: html`<span class="chip pending">Being verified</span>`,
     confirmed: html`<span class="chip confirmed">Won</span>`, unclaimed: html`<span class="chip">Not won</span>`,
   }[p.status];
   const w = p.winner;
-  return html`<div class="card prize ${p.kind}">
-    <div class="ico">${icon(icons[p.kind])}</div>
-    <div><div class="what">${p.label} ${statusChip}</div><div class="when">${p.rule}${p.dueAt && data.state.startAt ? ` · ${date(p.dueAt)}` : ''}</div></div>
+  const when = p.dueAt && data.state.startAt ? date(p.dueAt) : c.type === 'score' && p.threshold ? `${num(p.threshold)} points` : p.rule;
+  return html`<div class="card prize ${p.kind} ${p.status === 'confirmed' || p.status === 'unclaimed' ? 'done' : ''}">
+    <div class="pico">${icon(icons[p.kind])}</div>
+    <div><div class="what">${p.label} ${statusChip}</div><div class="when">${when}</div></div>
+    ${next ? html`<span class="chip countdown">${icon('clock')}<span data-countdown="${p.dueAt}">${duration(p.dueAt - Date.now())}</span></span>` : ''}
     <div class="amount">${money(p.amount)}</div>
     ${w ? html`<div class="winner">
       <span>${p.status === 'pending' ? 'Leading candidate:' : 'Winner:'} <b>${w.alias}</b>${w.isMe ? ' (you)' : ''}</span>
@@ -140,104 +137,136 @@ function prizeRow(p) {
   </div>`;
 }
 
+function prizeList() {
+  const { contest: c, state: s } = data;
+  if (!s.prizes.length) return previewPrizes(c);
+  // The countdown chip sits on the next prize that is decided by a date.
+  const next = s.phase === 'live' && c.type === 'deadline' ? s.prizes.find((p) => p.dueAt && p.dueAt > Date.now()) : null;
+  return s.prizes.map((p) => prizeRow(p, p === next && p.kind === 'milestone'));
+}
+
 function draw() {
-  const { contest: c, state: s, role, standings, announcements, questions } = data;
+  const { contest: c, state: s, role, standings, announcements, questions, entry } = data;
   const size = SIZES[c.size];
   const best = standings[0]?.points ?? 0;
-  const aboutItems = [['Why this contest', c.purpose], ['Who it is for', c.audience], ['How to win', c.howToWin], ['How the organizer boosts it', c.boost]].filter(([, t]) => t);
+  const aboutItems = [['The purpose of this contest', c.purpose], ['Who is this contest for?', c.audience], ['What do you have to do to win?', c.howToWin],
+    ['How does the organizer support this contest?', c.boost]].filter(([, t]) => t);
   const waitingForPayment = s.phase === 'draft' && params.get('paid');
+  const requirements = c.requirements.map(asItem), rules = c.rules.map(asItem);
 
   render(main, html`
   <div class="contest-cover">${c.cover ? raw(`<img src="${esc(c.cover)}" alt="">`) : raw(coverSvg(c.theme, c.id))}</div>
-  <div class="contest-sheet"><div class="wrap contest-layout">
-    <article>
-      ${s.phase === 'draft' ? html`<div class="banner-note">${waitingForPayment
+  <div class="contest-layout">
+    <article class="${c.type}-type">
+      ${s.phase === 'draft' ? html`<div class="banner-note" style="margin-top:16px">${waitingForPayment
         ? 'Payment received. Waiting for the confirmation from the payment provider, this page refreshes by itself.'
         : 'This is a draft. Only you can see it. It goes live the moment it is paid.'}</div>` : ''}
       <div class="contest-title">
         <div class="logo-box">${c.logo ? raw(`<img src="${esc(c.logo)}" alt="">`) : initials(c.company.name)}</div>
-        <div style="flex:1">
+        <div>
           <h1>${c.title}</h1>
-          <div class="by">by ${c.company.url ? html`<a href="${c.company.url}" target="_blank" rel="noopener">${c.company.name}</a>` : c.company.name}
-            · competes on <a href="${c.platformUrl}" target="_blank" rel="noopener">${new URL(c.platformUrl).host}</a></div>
+          <div class="by">${c.company.name}
+            ${c.company.url ? html`<a href="${c.company.url}" target="_blank" rel="noopener" title="Company website">${icon('link')}</a>` : ''}
+            <span class="muted small">competes on <a href="${c.platformUrl}" target="_blank" rel="noopener" style="display:inline">${new URL(c.platformUrl).host}</a></span></div>
         </div>
-        <button class="btn btn-ghost btn-sm" data-act="share">Share</button>
+        <button class="btn btn-ghost" data-act="share">${icon('share')}Share</button>
       </div>
-      <div class="tags">
-        <span class="chip ${s.phase}">${{ live: 'Live', ended: 'Ended', draft: 'Draft' }[s.phase]}</span>
-        <span class="chip ${c.type}">${TYPES[c.type].name}</span>
-        ${c.tags.map((t) => html`<span class="tag">${t}</span>`)}
+      <div class="contest-body">
+        <div class="tags">
+          <span class="chip ${s.phase}">${{ live: 'Live', ended: 'Ended', draft: 'Draft' }[s.phase]}</span>
+          <span class="chip ${c.type}">${TYPES[c.type].name}</span>
+          ${c.tags.map((t) => html`<span class="tag">${t}</span>`)}
+        </div>
+        <p class="lead-text">${c.summary}</p>
+
+        <div class="stats">
+          <div class="figure"><div class="k">Grand Prize</div><div class="v">${money(size.grandPrize)}</div></div>
+          <div class="figure"><div class="k">Level</div><div class="v">${flames(size.level, c.type)}</div></div>
+          <div class="figure"><div class="k">Best Result</div><div class="v">${num(best)} points</div></div>
+          <div class="figure"><div class="k">Total Participants</div><div class="v">${standings.length}</div></div>
+        </div>
+
+        <section class="prizes" id="prizes" style="scroll-margin-top:90px">${prizeList()}</section>
+
+        ${hasAbout(c) ? html`<section class="section about" id="about">
+          <h2 class="section-title">About the contest</h2>
+          ${c.company.about ? html`<p>${c.company.about}</p>` : ''}
+          ${aboutItems.length ? html`<div class="about-sub">${aboutItems.map(([h, t]) => html`<div><h3>${h}</h3><p>${t}</p></div>`)}</div>` : ''}
+        </section>` : ''}
+
+        <section class="section" id="score"><h2 class="section-title">${icon('gauge')}How to score</h2>
+          <div class="methods">${c.methods.map((m, i) => html`<div class="card method">
+            <span class="coin">${icon('coins')}</span>
+            <div class="pts">${icon('coins')}${m.points} ${m.points === 1 ? 'point' : 'points'}</div>
+            <div>${m.per === 1 ? 'For each of your' : 'For every'}</div>
+            <div class="per">${m.per === 1 ? m.label : `${num(m.per)} ${m.label}`}${m.note ? tip(m.note) : ''}</div>
+            ${entry ? html`<div class="mine"><span>Your points:</span><b>${num(methodPoints(m, entry.values[i]))}</b></div>` : ''}
+          </div>`)}</div>
+          <p class="small muted" style="margin-top:16px">${c.type === 'deadline'
+            ? `Most points after ${size.days} days wins the grand prize.`
+            : `The first participant to reach ${num(size.targetScore)} points wins the grand prize and ends the contest.`}
+            Participants report their own totals. The organizer checks every winner against their profile before the money is paid.</p>
+        </section>
+
+        ${requirements.length ? html`<section class="section" id="requirements">
+          <h2 class="section-title">${icon('checklist')}Requirements ${tip('You confirm that you meet every requirement when you join.')}</h2>
+          <div class="items">${requirements.map((r) => html`<div class="card item">
+            <span class="iico">${icon(REQ_ICON[r.title.toLowerCase()] || 'pointer')}</span>
+            <div>${r.title ? html`<div class="t">${r.title}</div>` : ''}<div class="x">${r.text}</div></div><span class="star" aria-hidden="true">*</span></div>`)}</div>
+        </section>` : ''}
+
+        ${rules.length ? html`<section class="section" id="rules">
+          <h2 class="section-title"><span style="font-size:1.6rem;line-height:1">§</span>Rules ${tip('Break a rule and the organizer can reject your win.')}</h2>
+          <div class="items">${rules.map((r) => html`<div class="card item rule"><span class="iico">§</span>
+            <div>${r.title ? html`<div class="t">${r.title}</div>` : ''}<div class="x">${r.text}</div></div></div>`)}</div>
+        </section>` : ''}
+
+        <section class="section" id="news"><h2 class="section-title">${icon('megaphone')}Announcements</h2>
+          ${role === 'organizer' && s.phase !== 'draft' ? html`<form class="ask" id="announce" style="margin:0 0 20px">
+            <div class="field"><input class="input" name="text" placeholder="Tell your participants something…" maxlength="1000"></div>
+            <button class="btn btn-primary" type="submit">Post</button></form>` : ''}
+          ${announcements.length ? html`<div class="items">${announcements.map((a) => html`<div class="card ann"><span class="bm">${icon('bookmark')}</span>
+            <div><p>${a.text}</p><time>– ${date(a.at)}</time>
+            ${role === 'organizer' ? html`<button class="link" data-act="del-ann" data-id="${a.id}">Delete</button>` : ''}</div></div>`)}</div>`
+            : html`<p class="muted">No announcements yet.</p>`}
+        </section>
+
+        <section class="section" id="faq"><h2 class="section-title">${icon('chat')}Frequently Asked Questions</h2>
+          ${questions.length ? html`<div class="qa">${questions.map((q, i) => html`<details ${q.answer ? '' : raw('open')}>
+            <summary><span class="n">${i + 1}</span><span>${q.question}</span></summary>
+            ${q.answer ? html`<div class="answer">${q.answer}</div>`
+              : role === 'organizer' ? html`<form class="ask answer-form" data-id="${q.id}" style="margin-left:60px"><div class="field"><input class="input" name="answer" placeholder="Your answer"></div><button class="btn btn-primary" type="submit">Answer</button></form>`
+              : html`<div class="answer muted">Waiting for the organizer's answer.</div>`}
+          </details>`)}</div>` : html`<p class="muted">No questions yet.</p>`}
+          ${role !== 'organizer' && s.phase !== 'draft' ? html`<form class="ask" id="ask"><div class="field">
+            <input class="input" name="question" placeholder="Ask a question" maxlength="600" aria-label="Ask the organizer a question"></div>
+            <button class="btn btn-primary" type="submit">Submit</button></form>` : ''}
+        </section>
+
+        ${data.surveyStats ? html`<section class="section" id="survey"><h2 class="section-title">${icon('question')}Questions to participants</h2>
+          <div class="survey">${c.survey.map((q, qi) => {
+            const counts = data.surveyStats[qi], total = Math.max(1, counts.reduce((a, b) => a + b, 0));
+            return html`<div class="card q"><h3>${q.question}</h3>${q.answers.map((a, ai) => html`<div class="bar-row">
+              <span>${a}</span><span class="b"><i style="width:${((counts[ai] / total) * 100).toFixed(1)}%"></i></span><span class="c">${counts[ai]}</span></div>`)}</div>`;
+          })}</div>
+          <p class="small muted" style="margin-top:12px">Only you see these answers.</p>
+        </section>` : ''}
+
+        <section class="section" id="board"><h2 class="section-title">${icon('podium')}Leaderboard</h2>
+          ${standings.length ? html`<div class="card" style="overflow-x:auto"><table class="board">
+            <thead><tr><th>#</th><th>Participant</th>${role === 'organizer' ? html`<th>Account</th>` : ''}<th class="num">Points</th>
+              <th class="num hide-sm">Tickets</th><th class="hide-sm">Last update</th></tr></thead>
+            <tbody>${standings.map((r) => html`<tr class="${r.isMe ? 'me' : ''}">
+              <td class="rank">${String(r.rank).padStart(2, '0')}</td><td>${r.alias}${r.isMe ? ' (you)' : ''}</td>
+              ${role === 'organizer' ? html`<td class="small">${r.name}<br><a class="link" href="${r.profileUrl}" target="_blank" rel="noopener">profile ↗</a></td>` : ''}
+              <td class="num"><b>${num(r.points)}</b></td><td class="num hide-sm">${r.tickets}</td>
+              <td class="hide-sm muted small">${r.lastAt ? ago(r.lastAt) : '–'}</td></tr>`)}</tbody></table></div>`
+            : html`<p class="muted">Nobody has joined yet. The first participants have the best odds.</p>`}
+        </section>
       </div>
-      <p style="font-size:1.08rem">${c.summary}</p>
-      ${c.company.about ? html`<p class="muted">${c.company.about}</p>` : ''}
-
-      <div class="stats">
-        <div class="figure"><div class="k">Prize pool</div><div class="v">${money(c.pool)}</div></div>
-        <div class="figure"><div class="k">Level</div><div class="v">${flames(size.level)} <span class="small muted">${size.name}</span></div></div>
-        <div class="figure"><div class="k">Best result</div><div class="v">${num(best)} pts</div></div>
-        <div class="figure"><div class="k">Participants</div><div class="v">${standings.length}</div></div>
-      </div>
-
-      <section class="section" id="prizes">
-        <h2>${icon('trophy')} Prizes</h2>
-        <div class="prizes">${s.prizes.length ? s.prizes.map(prizeRow) : previewPrizes(c)}</div>
-      </section>
-
-      ${aboutItems.length ? html`<section class="section" id="about"><h2>${icon('info')} About the contest</h2>
-        <div class="about-grid">${aboutItems.map(([h, t]) => html`<div><h3>${h}</h3><p>${t}</p></div>`)}</div></section>` : html`<span id="about"></span>`}
-
-      <section class="section" id="score"><h2>${icon('target')} How to score</h2>
-        <div class="methods">${c.methods.map((m) => html`<div class="method">
-          <div class="pts">${m.points} ${m.points === 1 ? 'point' : 'points'}</div>
-          <div class="per">${perUnit(m)}</div>
-          ${m.note ? html`<div class="note">${m.note}</div>` : ''}</div>`)}</div>
-        <p class="small muted" style="margin-top:12px">${c.type === 'deadline'
-          ? `Most points after ${size.days} days wins the grand prize.`
-          : `The first participant to reach ${size.targetScore} points wins the grand prize and ends the contest.`}
-          Participants report their own totals. The organizer checks every winner against their profile before the money is paid.</p>
-      </section>
-
-      ${c.requirements.length || c.rules.length ? html`<section class="section" id="rules">
-        <h2>${icon('rules')} Requirements & rules</h2>
-        ${c.requirements.length ? html`<ul class="rules req">${c.requirements.map((r) => html`<li><span class="badge">✓</span>${r}</li>`)}</ul>` : ''}
-        ${c.rules.length ? html`<ul class="rules" style="margin-top:10px">${c.rules.map((r) => html`<li><span class="badge">§</span>${r}</li>`)}</ul>` : ''}
-      </section>` : ''}
-
-      <section class="section" id="news"><h2>${icon('megaphone')} Announcements</h2>
-        ${role === 'organizer' && s.phase !== 'draft' ? html`<form class="ask" id="announce" style="margin:0 0 14px">
-          <div class="field" style="flex:1;margin:0"><input class="input" name="text" placeholder="Tell your participants something…" maxlength="1000"></div>
-          <button class="btn btn-dark" type="submit">Post</button></form>` : ''}
-        ${announcements.length ? html`<div style="display:grid;gap:10px">${announcements.map((a) => html`<div class="card ann">${a.text}<time>${dateTime(a.at)}</time>
-          ${role === 'organizer' ? html`<button class="link small" data-act="del-ann" data-id="${a.id}">Delete</button>` : ''}</div>`)}</div>`
-          : html`<p class="muted">No announcements yet.</p>`}
-      </section>
-
-      <section class="section qa" id="faq"><h2>${icon('chat')} Questions</h2>
-        ${questions.length ? questions.map((q) => html`<details ${q.answer ? '' : raw('open')}>
-          <summary>${q.question}</summary>
-          ${q.answer ? html`<div class="answer">${q.answer}</div>`
-            : role === 'organizer' ? html`<form class="ask answer-form" data-id="${q.id}"><div class="field" style="flex:1;margin:0"><input class="input" name="answer" placeholder="Your answer"></div><button class="btn btn-dark" type="submit">Answer</button></form>`
-            : html`<div class="answer muted">Waiting for the organizer's answer.</div>`}
-        </details>`) : html`<p class="muted">No questions yet.</p>`}
-        ${role !== 'organizer' && s.phase !== 'draft' ? html`<form class="ask" id="ask"><div class="field" style="flex:1;margin:0">
-          <input class="input" name="question" placeholder="Ask the organizer a question" maxlength="600"></div>
-          <button class="btn btn-dark" type="submit">Ask</button></form>` : ''}
-      </section>
-
-      <section class="section" id="board"><h2>${icon('podium')} Leaderboard</h2>
-        ${standings.length ? html`<div class="card" style="overflow-x:auto"><table class="board">
-          <thead><tr><th>#</th><th>Participant</th>${role === 'organizer' ? html`<th>Account</th>` : ''}<th class="num">Points</th>
-            <th class="num hide-sm">Tickets</th><th class="hide-sm">Last update</th></tr></thead>
-          <tbody>${standings.map((r) => html`<tr class="${r.isMe ? 'me' : ''}">
-            <td class="rank">${r.rank}</td><td>${r.alias}${r.isMe ? ' (you)' : ''}</td>
-            ${role === 'organizer' ? html`<td class="small">${r.name}<br><a class="link" href="${r.profileUrl}" target="_blank" rel="noopener">profile ↗</a></td>` : ''}
-            <td class="num"><b>${num(r.points)}</b></td><td class="num hide-sm">${r.tickets}</td>
-            <td class="hide-sm muted small">${r.lastAt ? ago(r.lastAt) : '–'}</td></tr>`)}</tbody></table></div>`
-          : html`<p class="muted">Nobody has joined yet. The first participants have the best odds.</p>`}
-      </section>
     </article>
     ${sidePanel()}
-  </div></div>`);
+  </div>`);
 
   wire();
   if (waitingForPayment) setTimeout(load, 3000);
@@ -246,9 +275,9 @@ function draw() {
 function previewPrizes(c) {
   const size = SIZES[c.size];
   const rows = [
-    ...size.milestones.map((m, i) => ({ kind: 'milestone', label: `Milestone ${i + 1}`, amount: m.prize, rule: c.type === 'deadline' ? `Leader after day ${m.days}` : `First to ${m.points} points` })),
-    { kind: 'grand', label: 'Grand prize', amount: size.grandPrize, rule: c.type === 'deadline' ? `Leader after day ${size.days}` : `First to ${size.targetScore} points` },
+    ...size.milestones.map((m, i) => ({ kind: 'milestone', label: `Milestone ${i + 1}`, amount: m.prize, rule: c.type === 'deadline' ? `Day ${m.days}` : `${m.points} points` })),
     ...(size.lottery ? [{ kind: 'lottery', label: 'Lottery', amount: size.lottery, rule: 'One ticket per day you update your score' }] : []),
+    { kind: 'grand', label: 'Grand Prize', amount: size.grandPrize, rule: c.type === 'deadline' ? `Day ${size.days}` : `${size.targetScore} points` },
   ];
   return rows.map((p) => prizeRow({ ...p, status: 'upcoming' }));
 }
@@ -317,21 +346,26 @@ async function onClick(e) {
 
 function joinModal() {
   const c = data.contest;
+  const items = [...c.requirements, ...c.rules].map(asItem);
   const m = modal('Join the contest', html`
     <form id="join" novalidate>
       <p class="muted">You compete under an alias. Only the organizer sees your real name, to verify a win.</p>
-      <div class="field"><label for="ja">Alias</label><input class="input" id="ja" name="alias" maxlength="30" required placeholder="e.g. Night Kitchen"></div>
-      <div class="field"><label for="jp">Your profile on ${c.company.name || 'the platform'}</label>
+      <div class="field"><label for="ja" class="req">Alias</label><input class="input" id="ja" name="alias" maxlength="30" required placeholder="e.g. Night Kitchen"></div>
+      <div class="field"><label for="jp" class="req">Your profile on ${c.company.name || 'the platform'}</label>
         <input class="input" id="jp" name="profileUrl" type="url" required placeholder="${c.platformUrl}">
         <span class="hint">The organizer uses it to check your score.</span></div>
-      ${c.requirements.length || c.rules.length ? html`<div class="field"><span class="label">Requirements & rules</span>
-        <ul class="rules small">${[...c.requirements, ...c.rules].map((r) => html`<li>${r}</li>`)}</ul></div>` : ''}
+      ${c.survey.length ? html`<div class="field" data-field="answers"><span class="label">The organizer would like to know</span>
+        ${c.survey.map((q, qi) => html`<fieldset style="border:0;padding:0;margin:0 0 8px"><legend style="font-weight:500;margin-bottom:8px">${q.question}</legend>
+          <div class="radio-grid">${q.answers.map((a, ai) => html`<label class="radio compact"><input type="radio" name="a${qi}" value="${ai}"><span class="face"><strong style="font-size:.98rem;font-weight:500">${a}</strong></span></label>`)}</div></fieldset>`)}</div>` : ''}
+      ${items.length ? html`<div class="field"><span class="label">Requirements and rules</span>
+        <ul style="margin:0;padding-left:1.2em">${items.map((r) => html`<li>${r.title ? html`<b>${/[?:!.]$/.test(r.title) ? r.title : `${r.title}:`}</b> ` : ''}${r.text}</li>`)}</ul></div>` : ''}
       <div class="field" data-field="acceptRules"><label class="check"><input type="checkbox" name="acceptRules" value="yes">
         <span>I meet the requirements and accept the rules.</span></label></div>
-      <button class="btn btn-primary btn-block" type="submit">Join</button>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">Join</button>
     </form>`);
   bindForm($('#join', m.el), async (v) => {
-    await api('POST', `/api/contests/${encodeURIComponent(id)}/join`, { ...v, acceptRules: v.acceptRules === 'yes' });
+    const answers = c.survey.map((_, i) => (v[`a${i}`] === undefined ? null : Number(v[`a${i}`])));
+    await api('POST', `/api/contests/${encodeURIComponent(id)}/join`, { alias: v.alias, profileUrl: v.profileUrl, acceptRules: v.acceptRules === 'yes', answers });
     m.close();
     toast('You are in. Report your first numbers as soon as you have them.');
     load();

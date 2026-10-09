@@ -11,10 +11,13 @@ body.night .muted-night { color: #9a93b8; }
 .site-header.dark .nav a:hover { color: #fff; }
 .site-header.dark .btn-ghost { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .22); color: #fff; }
 .site-header.dark .menu-toggle { color: #fff; }
+.site-header.dark .header-user { color: #fff; }
+.site-header.dark .header-user svg { color: #d6d0ea; }
 .site-header.dark.open { background: rgba(5, 4, 28, .96); }
 .logo-dark { color: #fff; }
 .site-footer.dark { border-color: rgba(255, 255, 255, .08); color: #9a93b8; margin-top: 0; }
 .site-footer.dark a:hover { color: #fff; }
+.site-footer.dark .copy { color: #7d76a0; }
 
 .btn-glass { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .25); color: #fff; backdrop-filter: blur(6px); }
 .btn-glass:hover { background: rgba(255, 255, 255, .16); }

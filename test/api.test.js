@@ -118,6 +118,44 @@ test('full contest lifecycle', async () => {
   assert.equal((await org('GET', '/api/dashboard')).data.organizing[0].participants, 2);
 });
 
+test('join survey: answers are required and counted for the organizer only', async () => {
+  const org = client(), ada = client();
+  await org('POST', '/api/auth/login', { email: 'o@x.io', password: 'longenough' });
+  await ada('POST', '/api/auth/login', { email: 'a@x.io', password: 'longenough' });
+  const bad = await org('POST', '/api/contests', { ...contestInput, title: 'Survey contest', survey: [{ question: 'Pick one', answers: ['Only'] }] });
+  assert.equal(bad.status, 400);
+  assert.ok(bad.data.fields.survey);
+  const { data } = await org('POST', '/api/contests', {
+    ...contestInput, title: 'Survey contest',
+    requirements: [{ title: 'Location', text: 'You live in Rivendell.' }, 'Plain string still works.'],
+    survey: [{ question: 'Gold or silver?', answers: ['Gold', 'Silver', ''] }],
+  });
+  await org('POST', `/api/contests/${data.id}/checkout`);
+  const join = (answers) => ada('POST', `/api/contests/${data.id}/join`, { alias: 'Ada', profileUrl: 'https://x.io/a', acceptRules: true, answers });
+  assert.ok((await join([])).data.fields.answers);
+  assert.ok((await join([null])).data.fields.answers, 'unanswered is not the first answer');
+  assert.ok((await join([2])).data.fields.answers, 'empty answers are dropped, so index 2 does not exist');
+  assert.equal((await join([1])).status, 200);
+  const view = (await org('GET', `/api/contests/${data.id}`)).data;
+  assert.deepEqual(view.contest.requirements, [{ title: 'Location', text: 'You live in Rivendell.' }, { title: '', text: 'Plain string still works.' }]);
+  assert.deepEqual(view.surveyStats, [[0, 1]]);
+  assert.equal((await ada('GET', `/api/contests/${data.id}`)).data.surveyStats, null);
+});
+
+test('profile details', async () => {
+  const c = client();
+  assert.equal((await c('POST', '/api/me', { name: 'X' })).status, 401);
+  await c('POST', '/api/auth/login', { email: 'o@x.io', password: 'longenough' });
+  assert.equal((await c('POST', '/api/me', { name: '' })).status, 400);
+  const saved = await c('POST', '/api/me', { name: 'Olivia O.', details: { vatId: 'DE123', city: 'Berlin', evil: 'x' } });
+  assert.equal(saved.status, 200);
+  const me = (await c('GET', '/api/me')).data.user;
+  assert.equal(me.name, 'Olivia O.');
+  assert.equal(me.details.vatId, 'DE123');
+  assert.equal(me.details.evil, undefined);
+  await c('POST', '/api/me', { name: 'Olivia' });
+});
+
 test('login, logout and CSRF guard', async () => {
   const c = client();
   assert.equal((await c('POST', '/api/auth/login', { email: 'o@x.io', password: 'wrong' })).status, 401);
